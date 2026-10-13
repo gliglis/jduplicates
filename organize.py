@@ -15,9 +15,9 @@ The program only READS the filesystem — it never renames, moves or deletes
 anything. The result is written to a log file and printed to the console.
 
 Usage:
-  python3 organize.py /volume1/video/Movies
-  python3 organize.py /volume1/video/Movies "/volume1/video/TV/Series"
-  python3 organize.py --log /volume1/logs/jduplicates.log /volume1/video/Movies
+  python3 organize.py --dir /volume1/video/Movies
+  python3 organize.py --dir /volume1/video/Movies --dir "/volume1/video/TV/Series"
+  python3 organize.py /volume1/video/Movies "/volume1/video/TV/Series"   # positional also works
 """
 
 import argparse
@@ -76,22 +76,26 @@ def scan(path, by_id):
 def main():
     ap = argparse.ArgumentParser(
         description='Find duplicates in a NAS media library by TMDB id (read-only).')
-    ap.add_argument('paths', nargs='*', help='one or more directories to scan')
+    ap.add_argument('paths', nargs='*', help='one or more directories to scan (positional)')
+    ap.add_argument('--dir', '--path', dest='dirs', action='append', default=[],
+                    metavar='DIR', help='directory to scan; repeat for several (e.g. --dir A --dir B)')
     ap.add_argument('--log', default=None,
                     help='log file path (default: jduplicates.log next to the script)')
     ap.add_argument('--no-log', action='store_true', help='do not write a log file')
     args = ap.parse_args()
 
+    all_paths = args.dirs + args.paths
+
     log_path = None if args.no_log else (args.log or os.path.join(SCRIPT_DIR, 'jduplicates.log'))
     setup_logging(log_path)
 
-    if not args.paths:
-        log.error('No paths given. Usage: python3 organize.py /path/one ["/path/two" ...]')
+    if not all_paths:
+        log.error('No paths given. Usage: python3 organize.py --dir /path/one [--dir /path/two ...]')
         sys.exit(1)
 
     # Keep only existing directories; drop duplicates / nested repeats by realpath.
     seen, roots = set(), []
-    for p in args.paths:
+    for p in all_paths:
         rp = os.path.realpath(p.rstrip('/'))
         if not os.path.isdir(rp):
             log.error('Not a directory, skipping: %s', p)
