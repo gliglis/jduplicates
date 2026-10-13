@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-dedup.py — find duplicates across a NAS media library, by TMDB id only.
+organize.py — find duplicates across a NAS media library, by TMDB id only.
 
 Runs LOCALLY on the NAS (e.g. as a Synology Task Scheduler job). It scans one
 or more directories and reports every TMDB id that appears more than once —
@@ -15,9 +15,9 @@ The program only READS the filesystem — it never renames, moves or deletes
 anything. The result is written to a log file and printed to the console.
 
 Usage:
-  python3 dedup.py /volume1/video/Movies
-  python3 dedup.py /volume1/video/Movies "/volume1/video/TV/Series"
-  python3 dedup.py --log /volume1/logs/dedup.log /volume1/video/Movies
+  python3 organize.py /volume1/video/Movies
+  python3 organize.py /volume1/video/Movies "/volume1/video/TV/Series"
+  python3 organize.py --log /volume1/logs/jduplicates.log /volume1/video/Movies
 """
 
 import argparse
@@ -31,7 +31,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEO_EXT = {'.ts', '.mkv', '.mp4', '.avi', '.m4v', '.mov', '.wmv', '.mpg', '.mpeg', '.m2ts'}
 RE_TMDBID = re.compile(r'\[tmdbid-(\d+)\]', re.IGNORECASE)
 
-log = logging.getLogger('dedup')
+log = logging.getLogger('jduplicates')
 
 
 def setup_logging(log_path):
@@ -77,15 +77,16 @@ def main():
     ap = argparse.ArgumentParser(
         description='Find duplicates in a NAS media library by TMDB id (read-only).')
     ap.add_argument('paths', nargs='*', help='one or more directories to scan')
-    ap.add_argument('--log', default=None, help='log file path (default: dedup.log next to the script)')
+    ap.add_argument('--log', default=None,
+                    help='log file path (default: jduplicates.log next to the script)')
     ap.add_argument('--no-log', action='store_true', help='do not write a log file')
     args = ap.parse_args()
 
-    log_path = None if args.no_log else (args.log or os.path.join(SCRIPT_DIR, 'dedup.log'))
+    log_path = None if args.no_log else (args.log or os.path.join(SCRIPT_DIR, 'jduplicates.log'))
     setup_logging(log_path)
 
     if not args.paths:
-        log.error('No paths given. Usage: python3 dedup.py /path/one ["/path/two" ...]')
+        log.error('No paths given. Usage: python3 organize.py /path/one ["/path/two" ...]')
         sys.exit(1)
 
     # Keep only existing directories; drop duplicates / nested repeats by realpath.
