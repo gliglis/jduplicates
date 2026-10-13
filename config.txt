@@ -1,0 +1,13 @@
+# Configuration (key=value). Runs locally on the NAS — read-only, no TMDB key needed.
+
+# Optional: directory for the dated log file (default: next to the script).
+# log_dir=/volume1/logs
+
+# Optional: delete log files older than N days (0 / unset = keep all).
+# log_keep_days=90
+
+# Optional: directories to scan when no --dir is given on the command line.
+# Add one "path=" line per directory (no quotes needed, spaces are fine).
+# Duplicates are detected by TMDB id across ALL listed paths together.
+# path=/volume1/video/Movies
+# path=/volume1/video/Series

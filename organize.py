@@ -38,6 +38,37 @@ RE_TMDBID = re.compile(r'\[tmdbid-(\d+)\]', re.IGNORECASE)
 log = logging.getLogger('jduplicates')
 
 
+def read_config(path):
+    cfg = {}
+    if not os.path.isfile(path):
+        return cfg
+    with open(path, encoding='utf-8') as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            cfg[k.strip()] = v.strip()
+    return cfg
+
+
+def config_paths(path):
+    """Return every 'path=' entry from the config, in order (one path per line).
+    Paths may contain spaces and need no quoting inside the config file."""
+    out = []
+    if not path or not os.path.isfile(path):
+        return out
+    with open(path, encoding='utf-8') as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            if k.strip() == 'path' and v.strip():
+                out.append(v.strip())
+    return out
+
+
 def setup_logging(log_path):
     log.setLevel(logging.INFO)
     log.handlers.clear()
@@ -84,22 +115,25 @@ def main():
     ap.add_argument('paths', nargs='*', help='one or more directories to scan (positional)')
     ap.add_argument('--dir', '--path', dest='dirs', action='append', default=[],
                     metavar='DIR', help='directory to scan; repeat for several (e.g. --dir A --dir B)')
+    ap.add_argument('--config', default=os.path.join(SCRIPT_DIR, 'config.txt'))
     ap.add_argument('--log-dir', default=None,
                     help='directory for the dated log file (default: next to the script)')
     ap.add_argument('--no-log', action='store_true', help='do not write a log file')
     args = ap.parse_args()
 
-    all_paths = args.dirs + args.paths
+    cfg = read_config(args.config)
+    all_paths = args.dirs + args.paths or config_paths(args.config)
 
     if args.no_log:
         log_path = None
     else:
         datestr = datetime.date.today().isoformat()
-        log_path = os.path.join(args.log_dir or SCRIPT_DIR, f'jduplicates-{datestr}.log')
+        log_dir = args.log_dir or cfg.get('log_dir') or SCRIPT_DIR
+        log_path = os.path.join(log_dir, f'jduplicates-{datestr}.log')
     setup_logging(log_path)
 
     if not all_paths:
-        log.error('No paths given. Usage: python3 organize.py --dir /path/one [--dir /path/two ...]')
+        log.error('No paths given. Use --dir /path (repeatable) or add path= lines to config.txt.')
         sys.exit(1)
 
     # Keep only existing directories; drop duplicates / nested repeats by realpath.
