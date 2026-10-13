@@ -14,6 +14,9 @@ A TMDB id found on two or more such entries is reported as a duplicate group.
 The program only READS the filesystem — it never renames, moves or deletes
 anything. The result is written to a log file and printed to the console.
 
+The log file name carries the date (jduplicates-YYYY-MM-DD.log), so scheduled
+runs are easy to read by date.
+
 Usage:
   python3 organize.py --dir /volume1/video/Movies
   python3 organize.py --dir /volume1/video/Movies --dir "/volume1/video/TV/Series"
@@ -21,6 +24,7 @@ Usage:
 """
 
 import argparse
+import datetime
 import logging
 import os
 import re
@@ -43,6 +47,7 @@ def setup_logging(log_path):
     log.addHandler(ch)
     if log_path:
         try:
+            os.makedirs(os.path.dirname(log_path) or '.', exist_ok=True)
             fh = logging.FileHandler(log_path, encoding='utf-8')
             fh.setFormatter(fmt)
             log.addHandler(fh)
@@ -79,14 +84,18 @@ def main():
     ap.add_argument('paths', nargs='*', help='one or more directories to scan (positional)')
     ap.add_argument('--dir', '--path', dest='dirs', action='append', default=[],
                     metavar='DIR', help='directory to scan; repeat for several (e.g. --dir A --dir B)')
-    ap.add_argument('--log', default=None,
-                    help='log file path (default: jduplicates.log next to the script)')
+    ap.add_argument('--log-dir', default=None,
+                    help='directory for the dated log file (default: next to the script)')
     ap.add_argument('--no-log', action='store_true', help='do not write a log file')
     args = ap.parse_args()
 
     all_paths = args.dirs + args.paths
 
-    log_path = None if args.no_log else (args.log or os.path.join(SCRIPT_DIR, 'jduplicates.log'))
+    if args.no_log:
+        log_path = None
+    else:
+        datestr = datetime.date.today().isoformat()
+        log_path = os.path.join(args.log_dir or SCRIPT_DIR, f'jduplicates-{datestr}.log')
     setup_logging(log_path)
 
     if not all_paths:
