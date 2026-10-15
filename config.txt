@@ -9,11 +9,4 @@ log_keep_days=90
 # log_dir=/volume1/logs
 
 # All libraries to scan for duplicates (movies + series).
-path=/volume1/video/TV/Filmy
-path=/volume1/video/TV/Dla dzieci
-path=/volume1/video/TV/Polskie
-path=/volume1/video/TV/Dokumentalne
-path=/volume1/video/TV/Dla dzieci krotkometrazowe
-path=/volume1/video/TV/Dla dzieci odcinkowe
-path=/volume1/video/TV/Dokumentalne Serie
-path=/volume1/video/TV/Seriale
+path=
