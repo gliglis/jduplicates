@@ -39,6 +39,34 @@ RE_TMDBID = re.compile(r'\[tmdbid-(\d+)\]', re.IGNORECASE)
 log = logging.getLogger('jduplicates')
 
 
+def human(n):
+    """Human-readable byte size, e.g. 1.4 GB."""
+    size = float(n)
+    for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+        if size < 1024 or unit == 'TB':
+            return f'{int(size)} {unit}' if unit == 'B' else f'{size:.1f} {unit}'
+        size /= 1024
+
+
+def entry_size(path):
+    """Size of a movie file, or the total size of all video files under a folder."""
+    if os.path.isfile(path):
+        try:
+            return os.path.getsize(path)
+        except OSError:
+            return 0
+    total = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        dirnames[:] = [d for d in dirnames if d != '@eaDir']
+        for f in filenames:
+            if os.path.splitext(f)[1].lower() in VIDEO_EXT:
+                try:
+                    total += os.path.getsize(os.path.join(dirpath, f))
+                except OSError:
+                    pass
+    return total
+
+
 def read_config(path):
     cfg = {}
     if not os.path.isfile(path):
@@ -223,7 +251,7 @@ def main():
             dup_entries += len(paths)
             log.info('tmdbid-%d (%s, %d copies):', tid, kind, len(paths))
             for p in paths:
-                log.info('    %s', p)
+                log.info('    [%s]  %s', human(entry_size(p)), p)
 
         log.info('==== DONE ====')
         if dups:

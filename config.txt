@@ -1,13 +1,19 @@
-# Configuration (key=value). Runs locally on the NAS — read-only, no TMDB key needed.
+# jduplicates — personal config (keep local, do NOT push to GitHub).
+# Read-only; no TMDB key needed. Duplicates are detected by TMDB id across
+# ALL listed paths together (movie ids and series-folder ids kept separate).
 
-# Optional: directory for the dated log file (default: next to the script).
+# Delete log files older than N days (0 = keep all).
+log_keep_days=90
+
+# Optional: where the dated log file goes (default: next to the script).
 # log_dir=/volume1/logs
 
-# Optional: delete log files older than N days (0 / unset = keep all).
-# log_keep_days=90
-
-# Optional: directories to scan when no --dir is given on the command line.
-# Add one "path=" line per directory (no quotes needed, spaces are fine).
-# Duplicates are detected by TMDB id across ALL listed paths together.
-# path=/volume1/video/Movies
-# path=/volume1/video/Series
+# All libraries to scan for duplicates (movies + series).
+path=/volume1/video/TV/Filmy
+path=/volume1/video/TV/Dla dzieci
+path=/volume1/video/TV/Polskie
+path=/volume1/video/TV/Dokumentalne
+path=/volume1/video/TV/Dla dzieci krotkometrazowe
+path=/volume1/video/TV/Dla dzieci odcinkowe
+path=/volume1/video/TV/Dokumentalne Serie
+path=/volume1/video/TV/Seriale
